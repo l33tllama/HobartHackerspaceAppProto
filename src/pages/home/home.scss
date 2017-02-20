@@ -1,5 +1,16 @@
 page-home {
+	$break-small: 320px;
+	$break-large: 1200px;
  #main{
  	text-align: center;
  }
+ @media screen and (max-width: $break-small){
+ 	background-color: #ff0;
+ }
+ @media screen and (min-width: $break-large) {
+    background-color: #f0f;
+  }
+  .home-event{
+  	border: 1px solid #000;
+  }
 }
