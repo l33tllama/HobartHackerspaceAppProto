@@ -1,14 +1,35 @@
 page-home {
 	$break-small: 320px;
-	$break-large: 1200px;
- #main{
+	$break-large: 1554px; // image width
+ #fullpage{
  	text-align: center;
+ 	
+ 	// #mainbackground{
+ 	// 	max-width: 1000%;
+	 //    max-height: 100%;
+	 //    height: inherit !important;
+	 //    background-clip: content-box;
+ 	// }
  }
  @media screen and (max-width: $break-small){
  	background-color: #ff0;
+ 	// #mainbackground{
+ 	// 	max-width: 1000%;
+	 //    max-height: 100%;
+	 //    height: inherit !important;
+	 //    background-clip: content-box;
+ 	// }
  }
  @media screen and (min-width: $break-large) {
     background-color: #f0f;
+  //   #mainbackground{
+ 	// 	// width: 100%;
+ 	// 	height: 100%;
+ 	// }
+ 	// #mainbackground-section{
+ 	// 	background-color: #000;
+ 	// 	height: 100%;
+ 	// }
   }
   .home-event{
   	border: 1px solid #000;

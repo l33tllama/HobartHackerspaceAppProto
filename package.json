@@ -20,15 +20,20 @@
     "@angular/platform-browser-dynamic": "2.2.1",
     "@angular/platform-server": "2.2.1",
     "@ionic/storage": "1.1.7",
+    "@types/fullpage.js": "^2.8.5",
+    "fullpage.js": "^2.9.2",
     "ionic-angular": "2.0.1",
     "ionic-native": "2.4.1",
     "ionicons": "3.0.0",
+    "jquery": "^3.1.1",
+    "ng2-fullpage": "^2.1.0",
     "rxjs": "5.0.0-beta.12",
     "sw-toolbox": "3.4.0",
     "zone.js": "0.6.26"
   },
   "devDependencies": {
     "@ionic/app-scripts": "1.1.0",
+    "@types/jquery": "^2.0.40",
     "typescript": "2.0.9"
   },
   "cordovaPlugins": [
