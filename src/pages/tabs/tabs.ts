@@ -3,6 +3,9 @@ import { Component } from '@angular/core';
 import { HomePage } from '../home/home';
 import { AboutPage } from '../about/about';
 import { ContactPage } from '../contact/contact';
+import { MembershipPage } from '../membership/membership';
+
+import { StatusBar } from 'ionic-native';
 
 @Component({
   templateUrl: 'tabs.html'
@@ -13,8 +16,14 @@ export class TabsPage {
   tab1Root: any = HomePage;
   tab2Root: any = AboutPage;
   tab3Root: any = ContactPage;
+  tab4Root: any = MembershipPage;
   //color: string = 'primary';
 
   constructor() {
+  }
+
+  ionViewDidLoad() {
+  	StatusBar.overlaysWebView(true);
+  	StatusBar.backgroundColorByHexString('#ffffff');
   }
 }
