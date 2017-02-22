@@ -1,6 +1,60 @@
 page-home {
 	$break-small: 320px;
 	$break-large: 1554px; // image width
+
+	#main {
+		background: url('../assets/hhs_app_image.jpg');
+		background-position: center center;
+		background-size: cover;
+		background-repeat: repeat, no-repeat;
+		
+		//background-attachment: fixed;
+		min-width: 100%;
+		min-height: 100%;
+	}
+
+	#logo-container{
+		//background: url('../assets/hhs_logo_inverted.png');
+		//background-size: 100% 100%;
+		//width: 200px;
+		//height: 68px;
+		
+		min-width: 100%;
+		min-height: 100%;
+
+		button, #logo-img,
+		#simple-about,.home-text{
+			display: block;
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		.home-text{
+			color: #fff;
+			margin-top: 7rem;
+			font-size: 16pt;
+			width: 80%;
+			text-align: center;
+			//background: rgba(255, 255, 255, 0.3);
+		}
+
+		#logo-img{
+			top: 50px;
+			max-height: 60%;
+			max-width: 	60%;
+			position: relative;
+			// margin: 0 auto;
+			width: 80%;
+		}
+
+		button {
+			margin-top: 15rem;
+		}
+	}
+
+	
+	
+
  #fullpage{
  	text-align: center;
  	
@@ -32,6 +86,6 @@ page-home {
  	// }
   }
   .home-event{
-  	border: 1px solid #000;
+  	//border: 1px solid #000;
   }
 }
