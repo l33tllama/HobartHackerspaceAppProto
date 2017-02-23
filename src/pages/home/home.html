@@ -1,13 +1,19 @@
 <ion-content>
   <div id="main">
     <div id="logo-container">
-      <img src="../assets/hhs_logo_inverted.png" id="logo-img"/>
+      <img src="assets/hhs_logo_inverted.png" id="logo-img"/>
       <p class="home-text" id="slogan">Make, learn, inspire.</p>
-      <button ion-button color="secondary">Join!</button>
+      <button ion-button color="secondary" (click)="login();">Join / Log In</button>
+
+      
+      
+      
       <div class="home-text" id="simple-about">
+      <p>{{debugtext}}</p>
         2 St Johns Avenue, New Town, TAS 7008<br/>
         Open nights every Thursday, 7PM
       </div>
+
     </div>
   </div>
 </ion-content>

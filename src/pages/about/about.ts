@@ -14,6 +14,7 @@ import { GoogleMap,
   selector: 'page-about',
   templateUrl: 'about.html'
 })
+
 export class AboutPage {
 
   constructor(public navCtrl: NavController) {
