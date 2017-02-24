@@ -2,11 +2,14 @@ import { Component } from '@angular/core';
 
 import { NavController, Platform } from 'ionic-angular';
 
+import { TestProvider } from '../../providers/test-provider';
+
 declare var window:any;
 
-@Component({
-  selector: 'page-home',
-  templateUrl: 'home.html'
+@Component(
+{  selector: 'page-home',
+  templateUrl: 'home.html',
+  providers: [TestProvider]
 })
 
 export class HomePage {
@@ -14,16 +17,22 @@ export class HomePage {
 	apiURL:string = 'https://accounts.tidyhq.com/oauth/authorize';
 	debugtext:string;
 
-
-	constructor(public navCtrl: NavController, private platform:Platform) {
+	constructor(public navCtrl: NavController, 
+		private platform:Platform, private testProvider:TestProvider) {
 		this.platform = platform;
+		this.testProvider = testProvider;
 	}
 
 	ionViewDidLoad() {
 		this.debugtext = "HELLO!!";
+		this.testProvider.load().then((res) =>{
+				console.log(res);
+			}
+		);
 	}
 
 	public login(){
+
 		console.log("Click!!");
 		console.log(this.platform.platforms());
 
@@ -34,8 +43,6 @@ export class HomePage {
 		} else {
 			this.debugtext = "mobile app";
 		}
-
-		/*
 		
 		this.platform.ready().then(() => {
 	        this.tidyhqLogin().then(success => {
@@ -43,7 +50,7 @@ export class HomePage {
 	        }, (error) => {
 	            alert(error);
 	        });
-    	}); */
+    	});
 	}
 
 	private checkIfMobilePlatform():boolean{
@@ -61,18 +68,19 @@ export class HomePage {
 		var apiURL = this.apiURL;
 		var debugtext = this.debugtext;
 		var that = this;
-		return new Promise(function(resolve, reject){
-			
+
+		return new Promise(function(resolve, reject){	
 
 			var browserRef:any;
 			apiURL += "?client_id=CLIENT_ID&redirect_uri=REDIRECT_URI&response_type=code";
 			
-			var isWebApp:boolean = that.checkIfMobilePlatform();
+			var isMobApp:boolean = that.checkIfMobilePlatform();
 
-			if(isWebApp){
-				browserRef = window.open(apiURL);
-			} else {
+			if(isMobApp){
 				browserRef = window.cordova.InAppBrowser.open(apiURL);
+			} else {
+				browserRef = window.open(apiURL);
+				
 			}
 
 			that.debugtext = "update?";
