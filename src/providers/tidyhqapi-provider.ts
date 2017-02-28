@@ -101,4 +101,8 @@ export class TidyHQAPIProvider {
 	public getContacts(data_callback:Function){
 		this.APIgetRequest("contacts", data_callback);
 	}
+
+	public getMyDetails(data_callback:Function){
+		this.APIgetRequest("contacts/me", data_callback);
+	}
 }

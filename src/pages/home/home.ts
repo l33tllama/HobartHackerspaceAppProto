@@ -57,6 +57,9 @@ export class HomePage {
 			var apikey:string = query.substring(14);
 			console.log("Super secret token: " + apikey);
 			this.tidyhq.setAPIKey(apikey);
+			this.tidyhq.getMyDetails(function(data){
+				console.log(data);
+			})
 		} else {
 			console.log("No access token? " + query);
 		}
