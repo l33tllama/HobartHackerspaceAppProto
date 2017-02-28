@@ -80,14 +80,11 @@ export class TidyHQAPIProvider {
 				location.replace(apiURL);
 				resolve("Window URL change.");
 			}
-
-			//window.href=apiURL;
-
 			console.log(browserRef);
 	    });
-		
 	}
 
+	//TODO: move to a promise..
 	private APIgetRequest(req:string, data_callback:Function){
 		var that = this;
 		//var header:any = { 'Authorization' : 'Bearer ' + that.access_token};

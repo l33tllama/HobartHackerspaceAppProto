@@ -33,11 +33,10 @@ export class HomePage {
 	}
 
 	ionViewDidLoad() {
-		alert("LOADED!");
-		this.debugtext = "HELLO!!";
 		var configLoaded:boolean = false;
 		var that = this;
 
+		// load api client id and secret from json file
 		this.config.load().then((res) => {
 			if(res.hasOwnProperty('client_id') &&
 				res.hasOwnProperty('client_secret')){
@@ -50,26 +49,17 @@ export class HomePage {
 			}
 		);
 
+		// Check for tidyhq access_token after login redirect
 		var query:string = window.location.hash;
-		var codeIndex:number;
-		codeIndex = query.indexOf("#access_token=");
 
-		if(codeIndex == 0){
+		if(query.indexOf("#access_token=") == 0) {
 			console.log("API key found on load");
 			var apikey:string = query.substring(14);
-			alert(query);
+			console.log("Super secret token: " + apikey);
 			this.tidyhq.setAPIKey(apikey);
-			this.tidyhq.getContacts(function(data){
-				console.log(data);
-				//alert(data);
-			});
 		} else {
 			console.log("No access token? " + query);
 		}
-
-		console.log(query);
-
-		
 	}
 
 	// called when button is clicked/tapped
@@ -86,59 +76,5 @@ export class HomePage {
 					console.log(err);
 				})
 		});
-	}
-
-	private checkIfMobilePlatform():boolean{
-		let isWebApp:boolean = false;
-		if (this.platform.platforms().includes('ios') ||
-			this.platform.platforms().includes('android')){
-			isWebApp = true;
-		}
-		
-		return !isWebApp;
-	}
-
-	public tidyhqLogin(): Promise<any> {
-		var pt = this.platform;
-		var apiURL = this.apiURL;
-		var debugtext = this.debugtext;
-		var that = this;
-
-		return new Promise(function(resolve, reject){	
-
-			var browserRef:any;
-			apiURL += "?client_id=CLIENT_ID&redirect_uri=REDIRECT_URI&response_type=code";
-			
-			var isMobApp:boolean = that.checkIfMobilePlatform();
-
-			if(isMobApp){
-				browserRef = window.cordova.InAppBrowser.open(apiURL);
-			} else {
-				browserRef = window.open(apiURL);
-			}
-
-			that.debugtext = "update?";
-
-			browserRef.addEventListener("loadstart", (event) => {
-	            if ((event.url).indexOf("http://localhost/callback") === 0) {
-	                browserRef.removeEventListener("exit", (event) => {});
-	                browserRef.close();
-	                var responseParameters = ((event.url).split("#")[1]).split("&");
-	                var parsedResponse = {};
-	                for (var i = 0; i < responseParameters.length; i++) {
-	                    parsedResponse[responseParameters[i].split("=")[0]] = responseParameters[i].split("=")[1];
-	                }
-	                if (parsedResponse["access_token"] !== undefined && parsedResponse["access_token"] !== null) {
-	                    resolve(parsedResponse);
-	                } else {
-	                    reject("Problem authenticating with TidyHQ");
-	                }
-            	}
-       		});
-
-	        browserRef.addEventListener("exit", function(event) {
-	            reject("The Facebook sign in flow was canceled");
-	        });
-		})
 	}
 }
