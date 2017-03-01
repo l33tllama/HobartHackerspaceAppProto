@@ -1,0 +1,8 @@
+TODO: 
+* Try the oauth2 library on github https://github.com/nraboy/ng2-cordova-oauth
+* General app rethink and redesign
+* Move user details to account tab?
+* Localstorage to save data?
+* Events feed
+* Tidy up contact and about (less info, more pictures, etc)
+* Facebook photos (same as tidhyq front page)

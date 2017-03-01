@@ -28,6 +28,7 @@ export class HomePage {
 		'profile_image' : null,
 		'expiry_date' : null
 	};
+	page_url:string;
 
 	//TODO: move to temp variables..
 	client_id:string;
@@ -57,6 +58,7 @@ export class HomePage {
 				}
 			}
 		);
+		this.page_url = window.location.href;
 
 		// Check for tidyhq access_token after login redirect
 		var query:string = window.location.hash;
