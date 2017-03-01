@@ -84,25 +84,26 @@ export class TidyHQAPIProvider {
 	    });
 	}
 
-	//TODO: move to a promise..
-	private APIgetRequest(req:string, data_callback:Function){
+	private APIgetRequest(req:string):Promise<any>{
 		var that = this;
-		//var header:any = { 'Authorization' : 'Bearer ' + that.access_token};
-		
-		this.http.get('https://api.tidyhq.com/v1/' + req + "?access_token=" + that.access_token)
-			.subscribe(data => {
-				data_callback(data);
-			}, error => {
-				console.log(JSON.stringify(error.json()));
-			}
-		);
+		return new Promise(function(resolve, reject){
+			//var header:any = { 'Authorization' : 'Bearer ' + that.access_token};
+			
+			that.http.get('https://api.tidyhq.com/v1/' + req + "?access_token=" + that.access_token)
+				.subscribe(data => {
+					resolve(data);
+				}, error => {
+					reject(JSON.stringify(error.json()));
+				}
+			);
+		});
 	}
 
-	public getContacts(data_callback:Function){
-		this.APIgetRequest("contacts", data_callback);
+	public getContacts():Promise<any>{
+		return this.APIgetRequest("contacts");
 	}
 
-	public getMyDetails(data_callback:Function){
-		this.APIgetRequest("contacts/me", data_callback);
+	public getMyDetails():Promise<any>{
+		return this.APIgetRequest("contacts/me");
 	}
 }

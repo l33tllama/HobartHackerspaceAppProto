@@ -19,6 +19,15 @@ export class HomePage {
 	apiURL:string = 'https://accounts.tidyhq.com/oauth/authorize';
 	debugtext:string;
 	configLoaded:boolean = false;
+	loginshow:boolean = true;
+	user_has_image:boolean = false;
+	user:Object = {
+		'first_name' : null, 
+		'active_membership' : false,
+		'has_rfid_tag' : false,
+		'profile_image' : null,
+		'expiry_date' : null
+	};
 
 	//TODO: move to temp variables..
 	client_id:string;
@@ -53,13 +62,35 @@ export class HomePage {
 		var query:string = window.location.hash;
 
 		if(query.indexOf("#access_token=") == 0) {
+			
 			console.log("API key found on load");
 			var apikey:string = query.substring(14);
 			console.log("Super secret token: " + apikey);
+
 			this.tidyhq.setAPIKey(apikey);
-			this.tidyhq.getMyDetails(function(data){
-				console.log(data);
-			})
+			var that = this;
+			this.tidyhq.getMyDetails().then(
+				(res) => {
+					that.loginshow = false;
+
+					console.log("Got user details..");
+					console.log(res.json());
+					var userData:Object = res.json();
+					console.log(userData['first_name']);
+					if (userData != null){
+
+						that.user['first_name'] = userData['first_name'];
+						if(userData['profile_image'] != null){
+							that.user_has_image = true;
+							that.user['profile_image'] = userData['profile_image'];
+						}
+					}
+					
+					console.log(userData);
+				}
+			).catch((err) => {
+				console.log(err);
+			});
 		} else {
 			console.log("No access token? " + query);
 		}
@@ -77,7 +108,8 @@ export class HomePage {
 				}, error => function (err) {
 					console.log("Error!");
 					console.log(err);
-				})
+				}
+			)
 		});
 	}
 }

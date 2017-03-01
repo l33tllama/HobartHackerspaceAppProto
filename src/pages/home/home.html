@@ -3,7 +3,28 @@
     <div id="logo-container">
       <img src="assets/hhs_logo_inverted.png" id="logo-img"/>
       <p class="home-text" id="slogan">Make, learn, inspire.</p>
-      <button ion-button color="secondary" (click)="login();">Join / Log In</button>      
+
+      <button [hidden]="!loginshow" id="login-button" ion-button color="secondary" (click)="login();">Join / Log In</button>
+      <ion-card id="user-info" [hidden]="loginshow">
+       <ion-card-header>
+          Hi {{user.first_name}},
+        </ion-card-header>
+
+        <ion-card-content>
+          <div [hidden]="!user_has_image">
+            <img src="{{user.profile_image}}"/>
+          </div>
+          <p [hidden]="!user.active_membership">
+            Your membership has expired. Please renew <i>here</i>
+          </p>
+          <p [hidden]="user.active_membersip">
+            Your membership is active!
+          </p>
+          <p [hidden]="!user.has_rfid_tag">
+              Please contact us to acquire/acive an RFID tag before entering the space.
+            </p>
+        </ion-card-content>
+      </ion-card>
       <div class="home-text" id="simple-about">
         2 St Johns Avenue, New Town, TAS 7008<br/>
         Open nights every Thursday, 7PM
