@@ -6,6 +6,8 @@ import { ConfigProvider } from '../../providers/config-provider';
 
 import { TidyHQAPIProvider } from '../../providers/tidyhqapi-provider';
 
+import { ITidyHQOptions } from '../../providers/tidyhqapi-provider';
+
 declare var window:any;
 
 @Component(
@@ -16,11 +18,13 @@ declare var window:any;
 
 export class HomePage {
 
-	apiURL:string = 'https://accounts.tidyhq.com/oauth/authorize';
 	debugtext:string;
 	configLoaded:boolean = false;
 	loginshow:boolean = true;
 	user_has_image:boolean = false;
+
+	tidyhqOptions:ITidyHQOptions;
+
 	user:Object = {
 		'first_name' : null, 
 		'active_membership' : false,
@@ -28,9 +32,9 @@ export class HomePage {
 		'profile_image' : null,
 		'expiry_date' : null
 	};
-	page_url:string;
 
-	//TODO: move to temp variables..
+
+	page_url:string;
 	client_id:string;
 	client_secret:string;
 
@@ -42,22 +46,69 @@ export class HomePage {
 		this.config = config;
 	}
 
+	private checkIfMobilePlatform():boolean{
+		let isWebApp:boolean = false;
+		if (this.platform.platforms().includes('ios') ||
+			this.platform.platforms().includes('android')){
+			isWebApp = true;
+		}
+		
+		return !isWebApp;
+	}
+
+	OnConfigLoad(options: ITidyHQOptions) {
+		this.tidyhqOptions = options;
+	}
+
 	ionViewDidLoad() {
 		var configLoaded:boolean = false;
 		var that = this;
+		var is_native = this.checkIfMobilePlatform();
+		// important!!
+
+		var client_id:string;
+		var client_secret:string;
+		var redirect_url:string;
 
 		// load api client id and secret from json file
 		this.config.load().then((res) => {
-			if(res.hasOwnProperty('client_id') &&
-				res.hasOwnProperty('client_secret')){
-					console.log("Client ID: " + res.client_id + 
-						" client secret: " + res.client_secret);
-					that.client_id = res.client_id;
-					that.client_secret = res.client_secret;
-					that.configLoaded = true;
+
+			if(is_native){
+				if(res.hasOwnProperty('native_client_id') &&
+					res.hasOwnProperty('native_client_secret') && 
+					res.hasOwnProperty('native_redirect_url')){
+
+						client_id = res.native_client_id;
+						client_secret = res.native_client_secret;
+						redirect_url = res.native_redirect_url;
+						that.configLoaded = true;
+					} else {
+						console.log("native config laod error");
+					}
+			} else {
+				if(res.hasOwnProperty('dev_client_id') &&
+					res.hasOwnProperty('dev_client_secret') && 
+					res.hasOwnProperty('dev_redirect_url')){
+						client_id = res.dev_client_id;
+						client_secret = res.dev_client_secret;
+						redirect_url = res.dev_redirect_url;
+						that.configLoaded = true;
+				} else {
+					console.log("dev config laod error");
 				}
 			}
-		);
+			if(that.configLoaded){
+				console.log("Config load successful.")
+				console.log("Client ID: " + client_id + 
+							" client secret: " + client_secret);
+				that.OnConfigLoad({
+					client_id: client_id, client_secret:client_secret, 
+					redirect_url:redirect_url, is_native:is_native});
+			} else {
+				console.log("Config not loaded!!");
+			}
+		});
+
 		this.page_url = window.location.href;
 
 		// Check for tidyhq access_token after login redirect
@@ -69,18 +120,18 @@ export class HomePage {
 			var apikey:string = query.substring(14);
 			console.log("Super secret token: " + apikey);
 
-			this.tidyhq.setAPIKey(apikey);
+			this.tidyhq.setAccessToken(apikey);
 			var that = this;
+
 			this.tidyhq.getMyDetails().then(
 				(res) => {
 					that.loginshow = false;
-
 					console.log("Got user details..");
 					console.log(res.json());
 					var userData:Object = res.json();
 					console.log(userData['first_name']);
-					if (userData != null){
 
+					if (userData != null){
 						that.user['first_name'] = userData['first_name'];
 						if(userData['profile_image'] != null){
 							that.user_has_image = true;
@@ -103,7 +154,11 @@ export class HomePage {
 		console.log("Click!!");
 		this.platform.ready().then(() => {
 			console.log("Connecting to tidyhq..");
-			this.tidyhq.connectToAPI(this.client_id, this.client_secret, "iframe-container").then(
+			if(!this.configLoaded){
+				console.log("Config load error!");
+				return;
+			}
+			this.tidyhq.connectToAPI(this.tidyhqOptions).then(
 				success => function(val){
 					console.log("Success?");
 					console.log(val);
