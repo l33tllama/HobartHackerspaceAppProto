@@ -49,15 +49,12 @@ export class TidyHQAPIProvider {
 			if(options.is_native) {
 				var browserRef = window.cordova.InAppBrowser.open(apiURL, "_blank", "location=no,clearsessioncache=yes,clearcache=yes");
 				browserRef.addEventListener("loadstart", function(event) {
-					console.log("Loading..");
-					console.log(event.url);
 
 					if ((event.url).indexOf(options.redirect_url) === 0) {
 		                browserRef.removeEventListener("exit", (event) => {});
 		                browserRef.close();
 
 		                var responseParameters = ((event.url).split("#")[1]).split("&");
-		                console.log(event.url);
 		                var parsedResponse = {};
 		                
 		                for (var i = 0; i < responseParameters.length; i++) {
@@ -65,13 +62,10 @@ export class TidyHQAPIProvider {
 		                }
 
 		                if (parsedResponse["access_token"] !== undefined && parsedResponse["access_token"] !== null) {
-		                	console.log(parsedResponse);
 		                    resolve(parsedResponse);
 		                } else {
 		                    reject("Problem authenticating with TidyHQ");
 		                }
-	           	 	} else {
-	           	 		console.log("Event url does not match redirect url: " + event.url + " " + options.redirect_url);
 	           	 	}
 				});
 

@@ -71,8 +71,6 @@ export class HomePage {
 		this.tidyhq.getMyDetails().then(
 			(res) => {
 				that.loginshow = false;
-				console.log("Got user details..");
-				console.log(res.json());
 				var userData:Object = res.json();
 				console.log(userData['first_name']);
 
@@ -81,9 +79,11 @@ export class HomePage {
 					if(userData['profile_image'] != null){
 						that.user_has_image = true;
 						that.user['profile_image'] = userData['profile_image'];
+						if(userData['status'] == "active"){
+							that.user['active_membership'] = true;
+						}
 					}
-				}
-				
+				}				
 				console.log(userData);
 			}
 		).catch((err) => {

@@ -4,23 +4,24 @@
       <img src="assets/hhs_logo_inverted.png" id="logo-img"/>
       <p class="home-text" id="slogan">Make, learn, inspire.</p>
 
-      <button [hidden]="!loginshow" id="login-button" ion-button color="secondary" (click)="login();">Join / Log In</button>
+      <button *ngIf="loginshow" id="login-button" ion-button color="secondary" (click)="login();">Join / Log In</button>
       <ion-card id="user-info" [hidden]="loginshow">
        <ion-card-header>
           Hi {{user.first_name}},
         </ion-card-header>
 
         <ion-card-content>
-          <div [hidden]="!user_has_image">
+          <div *ngIf="user_has_image">
             <img src="{{user.profile_image}}"/>
           </div>
-          <p [hidden]="!user.active_membership">
+          <p *ngIf="!user.active_membership">
             Your membership has expired. Please renew <i>here</i>
           </p>
-          <p [hidden]="user.active_membersip">
+          <p *ngIf="user.active_membersip">
             Your membership is active!
           </p>
-          <p [hidden]="!user.has_rfid_tag">
+          <!--TODO: get RFID tag ID -->
+          <p *ngIf="!user.has_rfid_tag">
               Please contact us to acquire/acive an RFID tag before entering the space.
             </p>
         </ion-card-content>
@@ -29,8 +30,8 @@
         2 St Johns Avenue, New Town, TAS 7008<br/>
         Open nights every Thursday, 7PM
         <!--<div>{{page_url}}</div>-->
-        <div [hidden]="!is_native">Native Mode</div>
-        <div [hidden]="is_native">Web App</div>
+        <div *ngIf="is_native">Native Mode</div>
+        <div *ngIf="!is_native">Web App</div>
         <div *ngFor="let pt of platforms">
           {{pt}}
         </div>
