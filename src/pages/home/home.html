@@ -28,7 +28,12 @@
       <div class="home-text" id="simple-about">
         2 St Johns Avenue, New Town, TAS 7008<br/>
         Open nights every Thursday, 7PM
-        <div>{{page_url}}</div>
+        <!--<div>{{page_url}}</div>-->
+        <div [hidden]="!is_native">Native Mode</div>
+        <div [hidden]="is_native">Web App</div>
+        <div *ngFor="let pt of platforms">
+          {{pt}}
+        </div>
       </div>
     </div>
   </div>

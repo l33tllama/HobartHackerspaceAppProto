@@ -22,6 +22,7 @@ export class HomePage {
 	configLoaded:boolean = false;
 	loginshow:boolean = true;
 	user_has_image:boolean = false;
+	platforms:Array<string>;
 
 	tidyhqOptions:ITidyHQOptions;
 
@@ -35,8 +36,7 @@ export class HomePage {
 
 
 	page_url:string;
-	client_id:string;
-	client_secret:string;
+	is_native:boolean;
 
 	constructor(public navCtrl: NavController, 
 		private platform:Platform, private config:ConfigProvider,
@@ -48,9 +48,14 @@ export class HomePage {
 
 	private checkIfMobilePlatform():boolean{
 		let isWebApp:boolean = false;
-		if (this.platform.platforms().includes('ios') ||
-			this.platform.platforms().includes('android')){
+
+		if (this.platform.platforms().includes('mobileweb') &&
+			!this.platform.platforms().includes('cordova')){
 			isWebApp = true;
+		}
+
+		if(this.platform.platforms().includes('cordova')){
+			return true;
 		}
 		
 		return !isWebApp;
@@ -58,6 +63,32 @@ export class HomePage {
 
 	OnConfigLoad(options: ITidyHQOptions) {
 		this.tidyhqOptions = options;
+	}
+
+	LoginAndShowInfo(){
+		var that = this;
+
+		this.tidyhq.getMyDetails().then(
+			(res) => {
+				that.loginshow = false;
+				console.log("Got user details..");
+				console.log(res.json());
+				var userData:Object = res.json();
+				console.log(userData['first_name']);
+
+				if (userData != null){
+					that.user['first_name'] = userData['first_name'];
+					if(userData['profile_image'] != null){
+						that.user_has_image = true;
+						that.user['profile_image'] = userData['profile_image'];
+					}
+				}
+				
+				console.log(userData);
+			}
+		).catch((err) => {
+			console.log(err);
+		});
 	}
 
 	ionViewDidLoad() {
@@ -69,6 +100,7 @@ export class HomePage {
 		var client_id:string;
 		var client_secret:string;
 		var redirect_url:string;
+		this.platforms = this.platform.platforms();
 
 		// load api client id and secret from json file
 		this.config.load().then((res) => {
@@ -109,6 +141,8 @@ export class HomePage {
 			}
 		});
 
+		this.is_native = is_native;
+
 		this.page_url = window.location.href;
 
 		// Check for tidyhq access_token after login redirect
@@ -121,29 +155,7 @@ export class HomePage {
 			console.log("Super secret token: " + apikey);
 
 			this.tidyhq.setAccessToken(apikey);
-			var that = this;
-
-			this.tidyhq.getMyDetails().then(
-				(res) => {
-					that.loginshow = false;
-					console.log("Got user details..");
-					console.log(res.json());
-					var userData:Object = res.json();
-					console.log(userData['first_name']);
-
-					if (userData != null){
-						that.user['first_name'] = userData['first_name'];
-						if(userData['profile_image'] != null){
-							that.user_has_image = true;
-							that.user['profile_image'] = userData['profile_image'];
-						}
-					}
-					
-					console.log(userData);
-				}
-			).catch((err) => {
-				console.log(err);
-			});
+			this.LoginAndShowInfo();
 		} else {
 			console.log("No access token? " + query);
 		}
@@ -152,6 +164,7 @@ export class HomePage {
 	// called when button is clicked/tapped
 	public login(){
 		console.log("Click!!");
+		var that = this;
 		this.platform.ready().then(() => {
 			console.log("Connecting to tidyhq..");
 			if(!this.configLoaded){
@@ -159,12 +172,14 @@ export class HomePage {
 				return;
 			}
 			this.tidyhq.connectToAPI(this.tidyhqOptions).then(
-				success => function(val){
+				(success) => {
 					console.log("Success?");
-					console.log(val);
-				}, error => function (err) {
+					console.log(success);
+					that.tidyhq.setAccessToken(success.access_token);
+					that.LoginAndShowInfo();
+				}, (error) =>  {
 					console.log("Error!");
-					console.log(err);
+					console.log(error);
 				}
 			)
 		});
