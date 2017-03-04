@@ -8,6 +8,8 @@ import { TidyHQAPIProvider } from '../../providers/tidyhqapi-provider';
 
 import { ITidyHQOptions } from '../../providers/tidyhqapi-provider';
 
+import { Storage } from '@ionic/storage';
+
 declare var window:any;
 
 @Component(
@@ -40,25 +42,32 @@ export class HomePage {
 
 	constructor(public navCtrl: NavController, 
 		private platform:Platform, private config:ConfigProvider,
-		private tidyhq:TidyHQAPIProvider) {
+		private tidyhq:TidyHQAPIProvider, storage:Storage) {
 		this.platform = platform;
 		this.tidyhq = tidyhq;
 		this.config = config;
+
+		storage.ready().then(() => {
+			storage.set('name', 'leo');
+		});
 	}
 
 	private checkIfMobilePlatform():boolean{
-		let isWebApp:boolean = false;
+		let isMobApp:boolean = false;
 
 		if (this.platform.platforms().includes('mobileweb') &&
 			!this.platform.platforms().includes('cordova')){
-			isWebApp = true;
+			isMobApp = false;
 		}
 
 		if(this.platform.platforms().includes('cordova')){
-			return true;
+			isMobApp = true;
+		}
+		if(this.platform.platforms().includes('core')){
+			return false;
 		}
 		
-		return !isWebApp;
+		return isMobApp;
 	}
 
 	OnConfigLoad(options: ITidyHQOptions) {
@@ -92,7 +101,6 @@ export class HomePage {
 	}
 
 	ionViewDidLoad() {
-		var configLoaded:boolean = false;
 		var that = this;
 		var is_native = this.checkIfMobilePlatform();
 		// important!!
