@@ -4,16 +4,14 @@ import { NavController, Platform } from 'ionic-angular';
 
 import { ConfigProvider } from '../../providers/config-provider';
 
-import { TidyHQAPIProvider } from '../../providers/tidyhqapi-provider';
-
-import { ITidyHQOptions } from '../../providers/tidyhqapi-provider';
+import { TidyHQAPIProvider, ITidyHQOptions } from '../../providers/tidyhqapi-provider';
 
 import { Storage } from '@ionic/storage';
 
 declare var window:any;
 
-@Component(
-{  selector: 'page-home',
+@Component({ 
+  selector: 'page-home',
   templateUrl: 'home.html',
   providers: [ConfigProvider, TidyHQAPIProvider]
 })
@@ -25,6 +23,10 @@ export class HomePage {
 	loginshow:boolean = true;
 	user_has_image:boolean = false;
 	platforms:Array<string>;
+	storage:Storage;
+	access_token_saved:boolean = false;
+	storage_available:boolean = false;
+	temp_access_token:string;
 
 	tidyhqOptions:ITidyHQOptions;
 
@@ -36,7 +38,6 @@ export class HomePage {
 		'expiry_date' : null
 	};
 
-
 	page_url:string;
 	is_native:boolean;
 
@@ -46,10 +47,7 @@ export class HomePage {
 		this.platform = platform;
 		this.tidyhq = tidyhq;
 		this.config = config;
-
-		storage.ready().then(() => {
-			storage.set('name', 'leo');
-		});
+		this.storage = storage;		
 	}
 
 	private checkIfMobilePlatform():boolean{
@@ -92,7 +90,7 @@ export class HomePage {
 							that.user['active_membership'] = true;
 						}
 					}
-				}				
+				}			
 				console.log(userData);
 			}
 		).catch((err) => {
@@ -100,24 +98,20 @@ export class HomePage {
 		});
 	}
 
-	ionViewDidLoad() {
+	readConfig(){
 		var that = this;
-		var is_native = this.checkIfMobilePlatform();
-		// important!!
 
 		var client_id:string;
 		var client_secret:string;
 		var redirect_url:string;
-		this.platforms = this.platform.platforms();
 
 		// load api client id and secret from json file
 		this.config.load().then((res) => {
 
-			if(is_native){
+			if(that.is_native){
 				if(res.hasOwnProperty('native_client_id') &&
 					res.hasOwnProperty('native_client_secret') && 
 					res.hasOwnProperty('native_redirect_url')){
-
 						client_id = res.native_client_id;
 						client_secret = res.native_client_secret;
 						redirect_url = res.native_redirect_url;
@@ -143,29 +137,79 @@ export class HomePage {
 							" client secret: " + client_secret);
 				that.OnConfigLoad({
 					client_id: client_id, client_secret:client_secret, 
-					redirect_url:redirect_url, is_native:is_native});
+					redirect_url:redirect_url, is_native:that.is_native});
 			} else {
 				console.log("Config not loaded!!");
 			}
 		});
+	}
 
-		this.is_native = is_native;
-
+	mobileWebHashCheck(){
+		// Check for MOBILE WEB reload - when Oauth redirects back to localhost server
 		this.page_url = window.location.href;
 
 		// Check for tidyhq access_token after login redirect
 		var query:string = window.location.hash;
 
 		if(query.indexOf("#access_token=") == 0) {
-			
-			console.log("API key found on load");
-			var apikey:string = query.substring(14);
-			console.log("Super secret token: " + apikey);
+			console.log("Access token found on load (# - URL hash)");
+			var access_token:string = query.substring(14);
+			console.log("Super secret token: " + access_token);
+			this.temp_access_token = access_token;
 
-			this.tidyhq.setAccessToken(apikey);
+			this.tidyhq.setAccessToken(access_token);
 			this.LoginAndShowInfo();
 		} else {
 			console.log("No access token? " + query);
+		}
+	}
+
+	ionViewDidLoad() {
+		// important!!
+		var st = this.storage;
+		var that = this;
+		this.is_native = this.checkIfMobilePlatform();
+
+		that.mobileWebHashCheck();
+
+		if(this.temp_access_token != null){
+			this.tidyhq.setAccessToken(this.temp_access_token);
+			this.saveAccessToken(this.temp_access_token);
+			return;
+		}
+
+		// Check for saved access token
+		st.ready().then(() => {
+			console.log("Storage is now available.");
+			that.storage_available = true;
+			st.get('access_token').then((val) => {
+				if(val == null){
+					that.access_token_saved = false;
+					that.readConfig();
+				} else {
+					console.log("Access token read! " + val);
+					that.access_token_saved = true;
+					that.tidyhq.setAccessToken(val);
+				}
+			}, (err) => {
+				console.log("Access token not saved: " + err);
+				that.access_token_saved = false;
+				that.readConfig();
+			});
+		});	
+	}
+
+	saveAccessToken(access_token:string){
+		if(this.storage_available){
+			this.storage.set('access_token', access_token);
+			this.access_token_saved = true;
+			console.log("Access token saved!");
+		} else {
+			console.log("Storage is not available yet! Retrying..");
+			this.storage.ready().then(() => {
+				this.storage.set('access_token', access_token);
+			})
+			
 		}
 	}
 
@@ -175,21 +219,29 @@ export class HomePage {
 		var that = this;
 		this.platform.ready().then(() => {
 			console.log("Connecting to tidyhq..");
-			if(!this.configLoaded){
-				console.log("Config load error!");
-				return;
-			}
-			this.tidyhq.connectToAPI(this.tidyhqOptions).then(
-				(success) => {
-					console.log("Success?");
-					console.log(success);
-					that.tidyhq.setAccessToken(success.access_token);
-					that.LoginAndShowInfo();
-				}, (error) =>  {
-					console.log("Error!");
-					console.log(error);
+
+			
+			if(this.access_token_saved){
+				this.LoginAndShowInfo();
+			} else {
+				if(!this.configLoaded){
+					console.log("Config load error!");
+					return;
 				}
-			)
+
+				this.tidyhq.connectToAPI(this.tidyhqOptions).then(
+					(success) => {
+						console.log("Success?");
+						console.log(success);
+						that.saveAccessToken(success.access_token);
+						that.tidyhq.setAccessToken(success.access_token);
+						that.LoginAndShowInfo();
+					}, (error) => {
+						console.log("Error!");
+						console.log(error);
+					}
+				);
+			}
 		});
 	}
 }
