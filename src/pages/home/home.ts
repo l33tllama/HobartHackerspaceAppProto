@@ -27,6 +27,8 @@ export class HomePage {
 	access_token_saved:boolean = false;
 	storage_available:boolean = false;
 	temp_access_token:string;
+	user_info:string;
+	logged_in:boolean = false;
 
 	tidyhqOptions:ITidyHQOptions;
 
@@ -47,7 +49,7 @@ export class HomePage {
 		this.platform = platform;
 		this.tidyhq = tidyhq;
 		this.config = config;
-		this.storage = storage;		
+		this.storage = storage;	
 	}
 
 	private checkIfMobilePlatform():boolean{
@@ -72,13 +74,23 @@ export class HomePage {
 		this.tidyhqOptions = options;
 	}
 
+	UpdateUserInfo(){
+		if(this.logged_in) { 
+			if(this.user['active_membership']){
+				this.user_info = "Your membership is active.";
+			}
+		}
+	}
+
 	LoginAndShowInfo(){
 		var that = this;
 
 		this.tidyhq.getMyDetails().then(
 			(res) => {
 				that.loginshow = false;
+				that.logged_in = true;
 				var userData:Object = res.json();
+
 				console.log(userData['first_name']);
 
 				if (userData != null){
@@ -90,7 +102,8 @@ export class HomePage {
 							that.user['active_membership'] = true;
 						}
 					}
-				}			
+				}
+				this.UpdateUserInfo();
 				console.log(userData);
 			}
 		).catch((err) => {
@@ -165,6 +178,8 @@ export class HomePage {
 	}
 
 	ionViewDidLoad() {
+
+		this.UpdateUserInfo();
 		// important!!
 		var st = this.storage;
 		var that = this;
@@ -182,7 +197,9 @@ export class HomePage {
 		st.ready().then(() => {
 			console.log("Storage is now available.");
 			that.storage_available = true;
+
 			st.get('access_token').then((val) => {
+
 				if(val == null){
 					that.access_token_saved = false;
 					that.readConfig();
@@ -190,17 +207,19 @@ export class HomePage {
 					console.log("Access token read! " + val);
 					that.access_token_saved = true;
 					that.tidyhq.setAccessToken(val);
+					this.login();
 				}
 			}, (err) => {
 				console.log("Access token not saved: " + err);
 				that.access_token_saved = false;
 				that.readConfig();
 			});
+
 		});	
 	}
 
 	saveAccessToken(access_token:string){
-		if(this.storage_available){
+		if(this.storage_available) {
 			this.storage.set('access_token', access_token);
 			this.access_token_saved = true;
 			console.log("Access token saved!");
@@ -208,8 +227,8 @@ export class HomePage {
 			console.log("Storage is not available yet! Retrying..");
 			this.storage.ready().then(() => {
 				this.storage.set('access_token', access_token);
+				this.storage_available = true;
 			})
-			
 		}
 	}
 
@@ -220,7 +239,6 @@ export class HomePage {
 		this.platform.ready().then(() => {
 			console.log("Connecting to tidyhq..");
 
-			
 			if(this.access_token_saved){
 				this.LoginAndShowInfo();
 			} else {
@@ -235,6 +253,7 @@ export class HomePage {
 						console.log(success);
 						that.saveAccessToken(success.access_token);
 						that.tidyhq.setAccessToken(success.access_token);
+						that.logged_in = true;
 						that.LoginAndShowInfo();
 					}, (error) => {
 						console.log("Error!");
