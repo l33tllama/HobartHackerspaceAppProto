@@ -29,6 +29,8 @@ export class HomePage {
 	temp_access_token:string;
 	user_info:string;
 	logged_in:boolean = false;
+	facebook_link:string = "https://www.facebook.com/hobarthackerspace";
+	twitter_link:string = "https://www.twitter.com/hobhackerspace";
 
 	tidyhqOptions:ITidyHQOptions;
 
@@ -184,6 +186,11 @@ export class HomePage {
 		var st = this.storage;
 		var that = this;
 		this.is_native = this.checkIfMobilePlatform();
+
+		if(this.is_native){
+			this.facebook_link = "fb://hobarthackerspace";
+			this.twitter_link = "twitter://user?user_id=hobhackerspace";
+		}
 
 		that.mobileWebHashCheck();
 
