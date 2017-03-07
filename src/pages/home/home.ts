@@ -111,7 +111,7 @@ export class HomePage {
 		});
 	}
 
-	readConfig(){
+	ReadConfig(){
 		var that = this;
 
 		var client_id:string;
@@ -202,7 +202,7 @@ export class HomePage {
 
 				if(val == null){
 					that.access_token_saved = false;
-					that.readConfig();
+					that.ReadConfig();
 				} else {
 					console.log("Access token read! " + val);
 					that.access_token_saved = true;
@@ -212,7 +212,7 @@ export class HomePage {
 			}, (err) => {
 				console.log("Access token not saved: " + err);
 				that.access_token_saved = false;
-				that.readConfig();
+				that.ReadConfig();
 			});
 
 		});	
