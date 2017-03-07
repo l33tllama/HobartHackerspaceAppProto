@@ -24,16 +24,25 @@
       <!-- *ngIf="!loginshow"-->
 
       <div class=userinfo >
-        Hi {{user.first_name}}!
-        <p *ngIf="user.active_membership">
-            Your membership is active!
-        </p>
-        <p *ngIf="!user.active_membership">
-            Your membership has expired. Please renew <i>here</i>
-        </p>
-        <p *ngIf="!user.has_rfid_tag">
-              Please contact us to acquire/activate an RFID tag before entering the space.
-        </p> 
+        <div *ngIf="!loginshow">
+          Hi {{user.first_name}}!
+          <p *ngIf="user.active_membership">
+              Your membership is active. Thanks for contributing! 
+              <span id="unicorn">🦄</span>
+          </p>
+          <p *ngIf="!user.active_membership">
+              Your membership has expired. Please renew <i>here</i>
+          </p>
+          <p *ngIf="!user.has_rfid_tag">
+                Please contact us to acquire/activate an RFID tag before entering the space.
+          </p>
+          <p *ngIf="user.has_rfid_tag">
+            Your RFID tag is active and should allow access to the space.
+          </p>
+        </div>
+        <div *ngIf="loginshow">
+          Please log in to check your account status.
+        </div>
       </div>
 
       <div class="home-text" id="simple-about">        

@@ -18,21 +18,21 @@ declare var window:any;
 
 export class HomePage {
 
-	debugtext:string;
+	storage:Storage;
+	tidyhqOptions:ITidyHQOptions;
+	platforms:Array<string>;
 	configLoaded:boolean = false;
 	loginshow:boolean = true;
 	user_has_image:boolean = false;
-	platforms:Array<string>;
-	storage:Storage;
 	access_token_saved:boolean = false;
 	storage_available:boolean = false;
-	temp_access_token:string;
-	user_info:string;
+	has_rfid_tag:boolean = false;
 	logged_in:boolean = false;
+	debugtext:string;
+	user_info:string;
+	temp_access_token:string;	
 	facebook_link:string = "https://www.facebook.com/hobarthackerspace";
 	twitter_link:string = "https://www.twitter.com/hobhackerspace";
-
-	tidyhqOptions:ITidyHQOptions;
 
 	user:Object = {
 		'first_name' : null, 
@@ -104,6 +104,17 @@ export class HomePage {
 							that.user['active_membership'] = true;
 						}
 					}
+					var custom_fields = userData['custom_fields'];
+
+					if(custom_fields.length > 0){
+						for(let field of custom_fields){
+							if(field['title'] == 'RFID Tag'){
+								that.user['has_rfid_tag'] = true;
+								console.log('tag' + field['value']);
+							}
+						}
+					}
+					
 				}
 				this.UpdateUserInfo();
 				console.log(userData);
@@ -180,11 +191,20 @@ export class HomePage {
 	}
 
 	OpenFacebook(){
-		window.open(this.facebook_link);
+		if(this.is_native){
+			window.open(this.facebook_link, '_system');
+		} else {
+			window.open(this.facebook_link);
+		}
+		
 	}
 
 	OpenTwitter(){
-		window.open(this.twitter_link);
+		if(this.is_native){
+			window.open(this.twitter_link, '_system');
+		} else {
+			window.open(this.twitter_link);
+		}
 	}
 
 	ionViewDidLoad() {
