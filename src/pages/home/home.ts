@@ -179,6 +179,14 @@ export class HomePage {
 		}
 	}
 
+	OpenFacebook(){
+		window.open(this.facebook_link);
+	}
+
+	OpenTwitter(){
+		window.open(this.twitter_link);
+	}
+
 	ionViewDidLoad() {
 
 		this.UpdateUserInfo();
