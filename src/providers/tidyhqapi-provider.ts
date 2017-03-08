@@ -45,6 +45,8 @@ export class TidyHQAPIProvider {
 		this.access_token = null;
 		this.ReadConfig();
 
+		this.is_native = this.checkIfMobilePlatform();
+
 		var that = this;
 
 		this.storage.ready().then(() => {
@@ -110,6 +112,25 @@ export class TidyHQAPIProvider {
 	          resolve(this.data);
 	        });
 	    });
+	}
+
+	private checkIfMobilePlatform():boolean{
+		let isMobApp:boolean = false;
+
+		if (this.platform.platforms().includes('mobileweb') &&
+			!this.platform.platforms().includes('cordova')){
+			isMobApp = false;
+		}
+
+		if(this.platform.platforms().includes('cordova')){
+			isMobApp = true;
+		}
+
+		if(this.platform.platforms().includes('core')){
+			return false;
+		}
+		
+		return isMobApp;
 	}
 
 	private OnConfigLoad(options: ITidyHQOptions) {

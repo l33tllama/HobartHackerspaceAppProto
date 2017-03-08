@@ -153,8 +153,9 @@ export class HomePage {
 		var that = this;
 
 		this.is_native = this.checkIfMobilePlatform();
+		
 		// TODO: copy function to provider class?
-		this.tidyhq.setNative(this.is_native);
+		//this.tidyhq.setNative(this.is_native);
 
 		if(this.is_native){
 			this.facebook_link = "fb://hobarthackerspace";
