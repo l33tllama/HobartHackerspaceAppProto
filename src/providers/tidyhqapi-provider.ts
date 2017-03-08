@@ -58,6 +58,12 @@ export class TidyHQAPIProvider {
 		});
 	}
 
+	public onTidyHQLoad():Promise<any>{
+		return this.ReadConfig().then((success) =>{
+			return this.onStorageLoad()
+		});
+	}
+
 	public onStorageLoad():Promise<any>{
 
 		var that = this;
@@ -70,24 +76,25 @@ export class TidyHQAPIProvider {
 				that.storage.get('access_token').then((val) => {
 
 					if(val == null){
+						console.log("No access_token in storage!");
 						that.access_token_saved = false;
-						that.ReadConfig();
+
 						resolve(false);
 					} else {
 						console.log("Access token read! " + val);
 						that.access_token_saved = true;
+						that.user_logged_in = true;
+						console.log("User has been logged in!" + that.user_logged_in);
 						that.setAccessToken(val);
 						resolve(true);
 					}
 				}, (err) => {
 					console.log("Access token not saved: " + err);
 					that.access_token_saved = false;
-					that.ReadConfig();
 					reject(err);
 				});
 			});	
 		})
-		
 	}
 
 	private loadConfigFile():Promise<any>{
@@ -109,49 +116,52 @@ export class TidyHQAPIProvider {
 		this.tidyhqOptions = options;
 	}
 
-	private ReadConfig(){
+	private ReadConfig():Promise<any>{
 		var that = this;
 
-		var client_id:string;
-		var client_secret:string;
-		var redirect_url:string;
+		return new Promise(function(resolve, reject){
+			var client_id:string;
+			var client_secret:string;
+			var redirect_url:string;
 
-		// load api client id and secret from json file
-		this.loadConfigFile().then((res) => {
+			// load api client id and secret from json file
+			that.loadConfigFile().then((res) => {
 
-			if(that.is_native){
-				if(res.hasOwnProperty('native_client_id') &&
-					res.hasOwnProperty('native_client_secret') && 
-					res.hasOwnProperty('native_redirect_url')){
-						client_id = res.native_client_id;
-						client_secret = res.native_client_secret;
-						redirect_url = res.native_redirect_url;
-						that.config_loaded = true;
-					} else {
-						console.log("native config load error");
-					}
-			} else {
-				if(res.hasOwnProperty('dev_client_id') &&
-					res.hasOwnProperty('dev_client_secret') && 
-					res.hasOwnProperty('dev_redirect_url')){
-						client_id = res.dev_client_id;
-						client_secret = res.dev_client_secret;
-						redirect_url = res.dev_redirect_url;
-						that.config_loaded = true;
+				if(that.is_native){
+					if(res.hasOwnProperty('native_client_id') &&
+						res.hasOwnProperty('native_client_secret') && 
+						res.hasOwnProperty('native_redirect_url')){
+							client_id = res.native_client_id;
+							client_secret = res.native_client_secret;
+							redirect_url = res.native_redirect_url;
+							that.config_loaded = true;
+						} else {
+							console.log("native config load error");
+						}
 				} else {
-					console.log("dev config load error");
+					if(res.hasOwnProperty('dev_client_id') &&
+						res.hasOwnProperty('dev_client_secret') && 
+						res.hasOwnProperty('dev_redirect_url')){
+							client_id = res.dev_client_id;
+							client_secret = res.dev_client_secret;
+							redirect_url = res.dev_redirect_url;
+							that.config_loaded = true;
+					} else {
+						console.log("dev config load error");
+					}
 				}
-			}
-			if(that.config_loaded){
-				console.log("Config load successful.")
-				console.log("Client ID: " + client_id + 
-							" client secret: " + client_secret);
-				that.OnConfigLoad({
-					client_id: client_id, client_secret:client_secret, 
-					redirect_url:redirect_url, is_native:that.is_native});
-			} else {
-				console.log("Config not loaded!!");
-			}
+				if(that.config_loaded){
+					console.log("Config load successful.")
+					console.log("Client ID: " + client_id + 
+								" client secret: " + client_secret);
+					that.OnConfigLoad({
+						client_id: client_id, client_secret:client_secret, 
+						redirect_url:redirect_url, is_native:that.is_native});
+					resolve(true);
+				} else {
+					reject(false);
+				}
+			});
 		});
 	}
 
@@ -168,6 +178,10 @@ export class TidyHQAPIProvider {
 				this.storage_available = true;
 			})
 		}
+	}
+
+	public setNative(is_native:boolean){
+		this.tidyhqOptions.is_native = is_native;
 	}
 
 	public setAccessToken(apikey:string){

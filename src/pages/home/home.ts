@@ -23,10 +23,7 @@ export class HomePage {
 	loginshow:boolean = true;
 	has_rfid_tag:boolean = false;
 	logged_in:boolean = false;
-	user_has_image:boolean = false;
-
-	configLoaded:boolean = false;
-	
+	user_has_image:boolean = false;	
 	is_native:boolean = false;
 	page_url:string;
 	debugtext:string;
@@ -49,10 +46,12 @@ export class HomePage {
 		this.platform = platform;
 		this.tidyhq = tidyhq;
 		this.alertCtrl = alertCtrl;
-		this.tidyhq.onStorageLoad().then((val)=>{
-			console.log("Storage ready??");
-			this.LoginAndShowInfo();
-		})
+		this.tidyhq.onTidyHQLoad().then((val)=>{
+			console.log("Storage ready?? " + val);
+			if(val == true){
+				this.LoginAndShowInfo();	
+			}
+		});
 	}
 
 	private checkIfMobilePlatform():boolean{
@@ -106,6 +105,7 @@ export class HomePage {
 				}
 			}
 		).catch((err) => {
+			console.log("Couldn't show user info!");
 			console.log(err);
 		});
 	}
@@ -128,6 +128,8 @@ export class HomePage {
 
 	// When page reloads for mobile web version
 	mobileWebHashCheck(){
+
+		console.log("Checking for access token..");
 		// Check for MOBILE WEB reload - when Oauth redirects back to localhost server
 		this.page_url = window.location.href;
 
@@ -147,11 +149,12 @@ export class HomePage {
 		}
 	}
 
-
 	ionViewDidLoad() {
 		var that = this;
 
 		this.is_native = this.checkIfMobilePlatform();
+		// TODO: copy function to provider class?
+		this.tidyhq.setNative(this.is_native);
 
 		if(this.is_native){
 			this.facebook_link = "fb://hobarthackerspace";
@@ -168,8 +171,6 @@ export class HomePage {
 			this.tidyhq.saveAccessToken(this.temp_access_token);
 			return;
 		}
-
-		
 	}
 
 	// called when button is clicked/tapped
@@ -177,36 +178,32 @@ export class HomePage {
 		var that = this;
 
 		this.platform.ready().then(() => {
-			if(that.tidyhq.isLoggedIn()){
-				that.LoginAndShowInfo();
-			} else {
-				if(!this.configLoaded){
-					let alert = this.alertCtrl.create({
-						title: 'Error!',
-						subTitle: 'There was an internal config read error. Sorry!',
-						buttons: ['OK']
-					});
-					alert.present();
-					return;
-				}
+			/*if(!this.tidyhq.configLoaded){
+				let alert = this.alertCtrl.create({
+					title: 'Error!',
+					subTitle: 'There was an internal config read error. Sorry!',
+					buttons: ['OK']
+				});
+				alert.present();
+				return;
+			}*/
 
-				this.tidyhq.connectToAPI().then(
-					(success) => {
-						that.tidyhq.saveAccessToken(success.access_token);
-						that.tidyhq.setAccessToken(success.access_token);
-						that.logged_in = true;
-						that.LoginAndShowInfo();
-					}, (error) => {
-						let alert = this.alertCtrl.create({
-							title:'Login error!',
-							subTitle: 'There was a problem logging into TidyHQ. ' + error,
-							buttons: ["OK"]
-						})
-						alert.present();
-						console.log(error);
-					}
-				);
-			}
+			this.tidyhq.connectToAPI().then(
+				(success) => {
+					that.tidyhq.saveAccessToken(success.access_token);
+					that.tidyhq.setAccessToken(success.access_token);
+					that.logged_in = true;
+					that.LoginAndShowInfo();
+				}, (error) => {
+					let alert = this.alertCtrl.create({
+						title:'Login error!',
+						subTitle: 'There was a problem logging into TidyHQ. ' + error,
+						buttons: ["OK"]
+					})
+					alert.present();
+					console.log(error);
+				}
+			);
 		});
 	}
 }
