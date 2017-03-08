@@ -191,6 +191,8 @@ export class HomePage {
 
 			this.tidyhq.connectToAPI().then(
 				(success) => {
+					console.log("API connect success, access token:");
+					console.log(success);
 					that.tidyhq.saveAccessToken(success.access_token);
 					that.tidyhq.setAccessToken(success.access_token);
 					that.logged_in = true;

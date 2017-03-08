@@ -207,6 +207,7 @@ export class TidyHQAPIProvider {
 
 	public setAccessToken(apikey:string){
 		this.access_token = apikey;
+		this.user_logged_in = true;
 	}
 
 	public isLoggedIn():boolean{
