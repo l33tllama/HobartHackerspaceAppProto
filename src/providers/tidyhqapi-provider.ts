@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Platform } from 'ionic-angular';
 import { Http } from '@angular/http';
+import { Storage } from '@ionic/storage';
 import 'rxjs/add/operator/map';
 
 declare var window:any;
@@ -12,27 +13,178 @@ export interface ITidyHQOptions {
 	is_native?:boolean;
 }
 
+export interface IUserData {
+	first_name?: string;
+	active_membership?:boolean;
+	has_rfid_tag?:boolean;
+	profile_image_url?:string;
+	expiry_date?:string;
+}
+
 @Injectable()
 export class TidyHQAPIProvider {
 
-	data:any;
-	access_token:string;
-	auth_login_url:string;
-	is_native:boolean = false;
+	private data:any;
+	private access_token:string;
+	private data_filename:string = 'assets/testdata.json';
+	private auth_login_url:string = 'https://accounts.tidyhq.com/oauth/authorize';
+	private storage_available:boolean = false;
+	private is_native:boolean = false;
+	private user_logged_in:boolean = false;
+	private access_token_saved:boolean = false;
+	private config_loaded:boolean = false;
+	private onready_callback:Function;
+	private tidyhqOptions:ITidyHQOptions;
+	private userData:IUserData;
 
-	constructor(private http:Http, private platform:Platform){
+	constructor(private http:Http, private platform:Platform,
+		private storage:Storage){
+		this.storage = storage;
 		this.http = http;
 		this.data = null;
 		this.access_token = null;
-		this.auth_login_url = 'https://accounts.tidyhq.com/oauth/authorize';
+		this.ReadConfig();
+
+		var that = this;
+
+		this.storage.ready().then(() => {
+			this.storage.get('access_token').then((val) => {
+				if(val != null) {
+					console.log('Access token: ' + val);
+					that.access_token = val;
+					that.user_logged_in = true;
+				}
+			});
+		});
+	}
+
+	public onStorageLoad():Promise<any>{
+
+		var that = this;
+		return new Promise(function(resolve, reject){
+			// Check for saved access token and log in automatically if it's saved
+			that.storage.ready().then(() => {
+				console.log("Storage is now available.");
+				that.storage_available = true;
+
+				that.storage.get('access_token').then((val) => {
+
+					if(val == null){
+						that.access_token_saved = false;
+						that.ReadConfig();
+						resolve(false);
+					} else {
+						console.log("Access token read! " + val);
+						that.access_token_saved = true;
+						that.setAccessToken(val);
+						resolve(true);
+					}
+				}, (err) => {
+					console.log("Access token not saved: " + err);
+					that.access_token_saved = false;
+					that.ReadConfig();
+					reject(err);
+				});
+			});	
+		})
+		
+	}
+
+	private loadConfigFile():Promise<any>{
+		if (this.data) {
+      		return Promise.resolve(this.data);
+		}
+ 
+	    return new Promise(resolve => {
+	      this.http.get(this.data_filename)
+	        .map(res => res.json())
+	        .subscribe(data => {
+	          this.data = data;
+	          resolve(this.data);
+	        });
+	    });
+	}
+
+	private OnConfigLoad(options: ITidyHQOptions) {
+		this.tidyhqOptions = options;
+	}
+
+	private ReadConfig(){
+		var that = this;
+
+		var client_id:string;
+		var client_secret:string;
+		var redirect_url:string;
+
+		// load api client id and secret from json file
+		this.loadConfigFile().then((res) => {
+
+			if(that.is_native){
+				if(res.hasOwnProperty('native_client_id') &&
+					res.hasOwnProperty('native_client_secret') && 
+					res.hasOwnProperty('native_redirect_url')){
+						client_id = res.native_client_id;
+						client_secret = res.native_client_secret;
+						redirect_url = res.native_redirect_url;
+						that.config_loaded = true;
+					} else {
+						console.log("native config load error");
+					}
+			} else {
+				if(res.hasOwnProperty('dev_client_id') &&
+					res.hasOwnProperty('dev_client_secret') && 
+					res.hasOwnProperty('dev_redirect_url')){
+						client_id = res.dev_client_id;
+						client_secret = res.dev_client_secret;
+						redirect_url = res.dev_redirect_url;
+						that.config_loaded = true;
+				} else {
+					console.log("dev config load error");
+				}
+			}
+			if(that.config_loaded){
+				console.log("Config load successful.")
+				console.log("Client ID: " + client_id + 
+							" client secret: " + client_secret);
+				that.OnConfigLoad({
+					client_id: client_id, client_secret:client_secret, 
+					redirect_url:redirect_url, is_native:that.is_native});
+			} else {
+				console.log("Config not loaded!!");
+			}
+		});
+	}
+
+	// save the access token to local storage
+	public saveAccessToken(access_token:string) {
+		if(this.storage_available) {
+			this.storage.set('access_token', access_token);
+			this.access_token_saved = true;
+			console.log("Access token saved!");
+		} else {
+			console.log("Storage is not available yet! Retrying..");
+			this.storage.ready().then(() => {
+				this.storage.set('access_token', access_token);
+				this.storage_available = true;
+			})
+		}
 	}
 
 	public setAccessToken(apikey:string){
 		this.access_token = apikey;
 	}
 
-	public connectToAPI(options:ITidyHQOptions):Promise<any>{
+	public isLoggedIn():boolean{
+		return this.user_logged_in;
+	}
+
+	public setLoggedIn(logged_in:boolean){
+		this.user_logged_in = logged_in;
+	}
+
+	public connectToAPI():Promise<any>{
 		var that = this;
+		var options = this.tidyhqOptions;
 
 		return new Promise(function(resolve, reject) {
 			console.log("Returing promise??");
@@ -82,8 +234,14 @@ export class TidyHQAPIProvider {
 	}
 
 	private APIgetRequest(req:string):Promise<any>{
+
 		var that = this;
 		return new Promise(function(resolve, reject){
+
+			// particular error to check for to get the user to log in again
+			if(!that.user_logged_in){
+				reject("not_logged_in");
+			}
 			//var header:any = { 'Authorization' : 'Bearer ' + that.access_token};
 			
 			that.http.get('https://api.tidyhq.com/v1/' + req + "?access_token=" + that.access_token)
