@@ -1,7 +1,25 @@
 TODO: 
-* Move login functionality to tabs page
-* General app rethink and redesign
-* Move user details to account tab?
+* Logout button
+	- remove token from storage
+* clean up front page for fitting on mobile screen
 * Events feed
+* Move user details to account tab?
+* Move login functionality to tabs page
 * Tidy up contact and about (less info, more pictures, etc)
 * Facebook photos (same as tidhyq front page)
+* General app rethink and redesign?
+
+
+Design Changes
+
+[ home ]
+- No open night info (events)
+- 
+
+[ about ]
+
+[ contact ]
+
+[ account ]
+- Status
+- Logout
